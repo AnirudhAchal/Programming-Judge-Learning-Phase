@@ -7,7 +7,7 @@ import (
 )
 
 func printSorted(val int) {
-	time.Sleep(time.Duration(val) * time.Second)
+	time.Sleep(time.Duration(val) * 100 * time.Millisecond)
 	fmt.Print(val)
 }
 
@@ -24,7 +24,6 @@ func main() {
 			defer wg.Done()
 			printSorted(x)
 		}()
-		//go printSorted(arr[i])
 	}
 	wg.Wait()
 }
