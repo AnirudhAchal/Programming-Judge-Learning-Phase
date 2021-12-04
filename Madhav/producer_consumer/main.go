@@ -6,36 +6,37 @@ import (
 	"time"
 )
 
-type a struct {
-	arr [5]int
-	mu  sync.Mutex
-	i   int
-}
+var j int = 5
 
-var j int = 6
-
-func producer(b *a) {
-	for true {
-		b.mu.Lock()
-		(b.i) = ((b.i) + 1) % 5
-		b.arr[b.i] = j
-		b.mu.Unlock()
+func producer(mu *sync.Mutex, c *chan int) {
+	for i := 0; i < 10; i++ {
+		mu.Lock()
+		if len(*c) == 5 {
+			mu.Unlock()
+		} else {
+			*c <- j
+			j = j + 1
+			mu.Unlock()
+		}
 	}
 }
 
-func consumer(b *a) {
-	for true {
-		b.mu.Lock()
-		fmt.Println(b.arr[b.i])
-		(b.i) = ((b.i) + 1) % 5
-		b.mu.Unlock()
+func consumer(mu *sync.Mutex, c *chan int) {
+	for i := 0; i < 10; i++ {
+		mu.Lock()
+		if len(*c) == 0 {
+			mu.Unlock()
+		} else {
+			fmt.Println(<-(*c))
+			mu.Unlock()
+		}
 	}
 }
 
 func main() {
-	var b a
-	b.i = 0
-	go producer(&b)
-	go consumer(&b)
-	time.Sleep(1 * time.Millisecond)
+	c := make(chan int, 5)
+	var mu sync.Mutex
+	go producer(&mu, &c)
+	go consumer(&mu, &c)
+	time.Sleep(10 * time.Millisecond)
 }
