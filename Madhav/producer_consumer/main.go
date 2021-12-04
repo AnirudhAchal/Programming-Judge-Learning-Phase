@@ -2,49 +2,40 @@ package main
 
 import (
 	"fmt"
+	"sync"
 	"time"
 )
 
-type queue struct {
-	tail int
-	head int
-	data [10]int
+type a struct {
+	arr [5]int
+	mu  sync.Mutex
+	i   int
 }
 
-func in(q *queue) {
-	q.head = 0
-	q.tail = 0
-}
+var j int = 6
 
-func producer(q *queue) {
-	i := 0
+func producer(b *a) {
 	for true {
-		for ((q.tail + 1) % 10) == q.head {
-		}
-		q.data[q.tail] = i
-		fmt.Printf("Inserted %d \n", i)
-		i++
-		q.tail = (q.tail + 1) % 10
+		b.mu.Lock()
+		(b.i) = ((b.i) + 1) % 5
+		b.arr[b.i] = j
+		b.mu.Unlock()
 	}
 }
 
-func consumer(q *queue) {
-	a := 0
+func consumer(b *a) {
 	for true {
-		for q.head == q.tail {
-		}
-		a = q.data[q.head]
-		fmt.Printf("Extracted %d \n", a)
-		q.head = (q.head + 1) % 10
+		b.mu.Lock()
+		fmt.Println(b.arr[b.i])
+		(b.i) = ((b.i) + 1) % 5
+		b.mu.Unlock()
 	}
-
 }
 
 func main() {
-	var q queue
-	q.head = 0
-	q.tail = 0
-	go producer(&q)
-	go consumer(&q)
-	time.Sleep(10 * time.Millisecond)
+	var b a
+	b.i = 0
+	go producer(&b)
+	go consumer(&b)
+	time.Sleep(1 * time.Millisecond)
 }
