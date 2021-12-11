@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"sync"
+	"time"
 )
 
 var mu sync.Mutex
@@ -16,7 +17,7 @@ var data [10]int
 func producer(wg *sync.WaitGroup) {
 
 	defer wg.Done()
-	for true {
+	for i := 0; i < 10; i++ {
 		mu.Lock()
 		if count == 10 {
 			mu.Unlock()
@@ -27,12 +28,13 @@ func producer(wg *sync.WaitGroup) {
 			in = (in + 1) % 10
 			mu.Unlock()
 		}
+		time.Sleep(2 * time.Millisecond)
 	}
 }
 func consumer(wg *sync.WaitGroup) {
 
 	defer wg.Done()
-	for true {
+	for i := 0; i < 10; i++ {
 		mu.Lock()
 		if count == 0 {
 			mu.Unlock()
@@ -42,6 +44,7 @@ func consumer(wg *sync.WaitGroup) {
 			out = (out + 1) % 10
 			mu.Unlock()
 		}
+		time.Sleep(time.Millisecond)
 	}
 }
 
