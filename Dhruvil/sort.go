@@ -15,11 +15,10 @@ func main() {
 	var wg sync.WaitGroup
 	for _, v := range arr {
 		wg.Add(1)
-		v := v
-		go func() {
+		go func(v int) {
 			defer wg.Done()
 			printSorted(v)
-		}()
+		}(v)
 	}
 	wg.Wait()
 }
