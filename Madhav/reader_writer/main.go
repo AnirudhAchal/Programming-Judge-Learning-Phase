@@ -2,43 +2,68 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"sync"
 	"time"
 )
 
-type a struct {
-	sync.RWMutex
-	i int
-}
+var mu sync.RWMutex
 
 var j int = 5
 
-func writer(v *a) {
-	v.Lock()
-	fmt.Println("writing started")
-	v.i = j
-	j++
-	fmt.Println("writing finished")
-	v.Unlock()
+func writer_action(i int, wg *sync.WaitGroup) {
+	x := (rand.Intn(100) % 5) + 1
+	sec := time.Duration(x) * time.Millisecond
+	mu.Lock()
+	fmt.Println("writing started", i)
+	time.Sleep(sec)
+	fmt.Println("writing finished", i)
+	mu.Unlock()
+	wg.Done()
 }
 
-func reader(v *a) {
-	for i := 0; i < 10; i++ {
-		v.RLock()
-		fmt.Println("reading started")
-		fmt.Println(v.i)
-		fmt.Println("reading finished")
-		v.RUnlock()
+func reader_action(i int, wg *sync.WaitGroup) {
+	x := (rand.Intn(100) % 5) + 1
+	sec := time.Duration(x) * time.Millisecond
+	mu.RLock()
+	fmt.Println("reading started", i)
+	time.Sleep(sec)
+	fmt.Println("reading finished", i)
+	mu.RUnlock()
+	wg.Done()
+}
+
+func readers(j int, wg *sync.WaitGroup) {
+	var wg1 sync.WaitGroup
+	for i := 0; i < j; i++ {
+		x := (rand.Intn(100) % 5) + 1
+		sec := time.Duration(x) * time.Millisecond
+		time.Sleep(sec)
+		wg1.Add(1)
+		go reader_action(i, &wg1)
 	}
+	wg1.Wait()
+	wg.Done()
+}
+
+func writers(j int, wg *sync.WaitGroup) {
+	var wg1 sync.WaitGroup
+	for i := 0; i < j; i++ {
+		x := (rand.Intn(100) % 5) + 1
+		sec := time.Duration(x) * time.Millisecond
+		time.Sleep(sec)
+		wg1.Add(1)
+		go writer_action(i, &wg1)
+	}
+	wg1.Wait()
+	wg.Done()
 }
 
 func main() {
-	var v a
-	go writer(&v)
-	go reader(&v)
-	go writer(&v)
-	go reader(&v)
-	go writer(&v)
-	go reader(&v)
-	time.Sleep(10 * time.Millisecond)
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go writers(10, &wg)
+	wg.Add(1)
+	go readers(10, &wg)
+	wg.Wait()
 }
