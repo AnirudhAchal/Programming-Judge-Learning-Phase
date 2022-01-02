@@ -21,29 +21,27 @@ func checkAvail(i int) bool {
 	}
 	return false
 }
+
 func dine(i int) {
 	mu.Lock()
-
 	if checkAvail(i) {
+
 		avail[i] = 0
 		avail[(i+1)%5] = 0
 
-		forks[i].Lock()
-		forks[(i+1)%5].Lock()
+		mu.Unlock() //release master lock, allow others to pick up forks
 
 		fmt.Printf("Philosopher %v dining\n", i+1)
 		time.Sleep(100 * time.Millisecond) //dining
 
-		forks[i].Unlock()
-		forks[(i+1)%5].Unlock()
-
 		avail[i] = 1
 		avail[(i+1)%5] = 1
 		philDone[i] = true
+
 		fmt.Printf("Philosopher %v done\n", i+1)
 
-		mu.Unlock()
 	} else {
+		fmt.Printf("Philosopher %v waiting\n", i+1)
 		mu.Unlock()
 	}
 }
@@ -61,10 +59,11 @@ func main() {
 			if philDone[i] == false {
 				i := i
 				wg.Add(1)
-				go func() {
+
+				go func(i int) {
 					defer wg.Done()
 					dine(i)
-				}()
+				}(i)
 			}
 		}
 		wg.Wait()

@@ -48,10 +48,10 @@ func main() {
 		wg.Add(1)
 
 		w := i
-		go func() {
+		go func(v int) {
 			defer wg.Done()
 			writer(w)
-		}()
+		}(w)
 	}
 
 	for i := 0; i < 5; i++ {

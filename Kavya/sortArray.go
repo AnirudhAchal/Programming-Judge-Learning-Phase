@@ -20,10 +20,10 @@ func main() {
 		wg.Add(1)
 
 		x := arr[i]
-		go func() {
+		go func(x int) {
 			defer wg.Done()
 			printSorted(x)
-		}()
+		}(x)
 	}
 	wg.Wait()
 }
